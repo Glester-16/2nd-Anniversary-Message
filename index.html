@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy 2nd Anniversary!</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: #ffe6ea;
+            background-image: linear-gradient(135deg, #fff5f6 0%, #ffe6ea 100%), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23ff99b3' fill-opacity='0.1' d='M8 15c4.418 0 8-3.582 8-8V0H0v7c0 4.418 3.582 8 8 8zm0-1c-3.866 0-7-3.134-7-7V1h14v6c0 3.866-3.134 7-7 7z'/%3E%3C/svg%3E");
+            background-blend-mode: overlay;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100vh; font-family: 'Poppins', sans-serif; overflow: hidden; color: #555;
+        }
+
+        /* --- PASSWORD OVERLAY --- */
+        .password-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #ffe6ea; background-image: linear-gradient(135deg, #fff5f6 0%, #ffe6ea 100%);
+            z-index: 100; display: flex; justify-content: center; align-items: center;
+            transition: opacity 0.8s ease, visibility 0.8s;
+        }
+        .password-overlay.unlocked { opacity: 0; visibility: hidden; }
+
+        .password-card {
+            background: #ffffff; padding: 40px 30px; border-radius: 20px; text-align: center;
+            box-shadow: 0 15px 35px rgba(255, 75, 114, 0.2); border: 2px solid #ffb3c6; width: 90%; max-width: 350px;
+        }
+        .password-card h2 { font-family: 'Dancing Script', cursive; color: #ff4b72; font-size: 36px; margin-bottom: 10px; }
+        .password-card p { font-size: 14px; color: #666; margin-bottom: 20px; line-height: 1.5; }
+        
+        .password-input-wrapper { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        .password-card input {
+            padding: 12px; font-size: 20px; text-align: center; border: 2px solid #ffccd5; border-radius: 10px;
+            width: 180px; outline: none; font-family: 'Poppins', sans-serif; letter-spacing: 4px; color: #ff4b72;
+            transition: border-color 0.3s;
+        }
+        .password-card input:focus { border-color: #ff4b72; }
+        
+        .password-card button {
+            background: #ff4b72; color: white; border: none; padding: 12px 30px; border-radius: 10px;
+            font-size: 16px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; transition: 0.3s;
+        }
+        .password-card button:hover { background: #e6395e; transform: translateY(-2px); }
+        
+        .error-msg {
+            color: #e6395e; font-size: 13px; font-weight: 600; margin-top: 15px; display: none;
+            animation: shake 0.4s ease-in-out;
+        }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } }
+
+        /* --- BACKGROUND ELEMENTS --- */
+        .float-element { position: fixed; pointer-events: none; opacity: 0.6; animation: floatUp 8s linear infinite; z-index: 1; }
+        @keyframes floatUp { 0% { transform: translateY(100vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.6; } 90% { opacity: 0.6; } 100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; } }
+        .heart { color: #ff4b72; font-size: 20px; }
+        .rose-icon { font-size: 24px; }
+
+        /* --- ENVELOPE STRUCTURE --- */
+        .envelope-wrapper { position: relative; width: 340px; height: 220px; cursor: pointer; z-index: 10; transition: transform 0.6s ease 0.6s; }
+        .envelope { position: relative; width: 100%; height: 100%; background-color: #ffccd5; border-radius: 0 0 15px 15px; box-shadow: 0 15px 35px rgba(255, 75, 114, 0.3); border: 2px solid #ffb3c6; z-index: 10; }
+        .flap { position: absolute; top: -2px; left: -2px; width: 0; height: 0; border-left: 170px solid transparent; border-right: 170px solid transparent; border-top: 130px solid #ff99b3; transform-origin: top; transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.6s, border-top-color 0.6s 0.6s, z-index 0s 0.9s; z-index: 14; }
+        .pocket { position: absolute; bottom: -2px; left: -2px; width: 0; height: 0; border-left: 170px solid #ffccd5; border-right: 170px solid #ffccd5; border-bottom: 120px solid #ff80a0; border-radius: 0 0 15px 15px; z-index: 13; pointer-events: none; }
+        .seal { position: absolute; width: 40px; height: 40px; background-color: #ff4b72; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E"); background-size: 60%; background-repeat: no-repeat; background-position: center; border-radius: 50%; top: 65px; left: calc(50% - 20px); z-index: 15; box-shadow: 0 4px 8px rgba(0,0,0,0.15); transition: transform 0.4s ease 0.6s, opacity 0.4s 0.6s; }
+
+        /* --- THE LETTER --- */
+        .letter {
+            position: absolute; bottom: 10px; left: 50%; width: 310px; height: 190px; transform: translateX(-50%) translateY(0);
+            background-color: #ffffff; background-image: radial-gradient(#fff5f6 10%, transparent 10%); background-size: 20px 20px;
+            border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0s, height 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0s, box-shadow 0.6s 0s; z-index: 12; 
+            padding: 20px 15px 40px 15px; display: flex; flex-direction: column; overflow: hidden; 
+        }
+
+        .letter .title { font-family: 'Dancing Script', cursive; font-size: 32px; color: #ff4b72; margin-bottom: 10px; flex-shrink: 0; text-align: center; }
+        
+        .letter .message {
+            font-size: 13.5px; line-height: 1.6; margin-bottom: 10px; color: #444; flex-grow: 1;
+            overflow-x: hidden; overflow-y: hidden; scrollbar-gutter: stable; word-wrap: break-word; overflow-wrap: break-word;
+            padding-right: 5px; text-align: left;
+        }
+
+        .letter .message::-webkit-scrollbar { width: 5px; }
+        .letter .message::-webkit-scrollbar-thumb { background: #ff99b3; border-radius: 10px; }
+        .letter .message::-webkit-scrollbar-track { background: #fff5f6; border-radius: 10px; }
+        .letter .sign-off { font-size: 15px; color: #ff80a0; font-weight: 600; margin-top: 10px; flex-shrink: 0; text-align: center; }
+
+        /* --- NEW FEATURES CSS --- */
+        
+        /* Polaroid Styling */
+        .polaroid {
+            width: 140px; background: white; padding: 6px 6px 20px 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transform: rotate(3deg); margin: 0 auto 15px auto; text-align: center; border: 1px solid #ffe6ea;
+        }
+        .polaroid img { width: 100%; height: auto; display: block; background-color: #ffb3c6; }
+        .polaroid-caption { font-family: 'Dancing Script', cursive; font-size: 16px; color: #ff4b72; margin-top: 5px; }
+
+        /* Live Timer Styling */
+        .timer-display {
+            background-color: #fff0f3; padding: 10px; border-radius: 10px; font-size: 12px;
+            color: #ff4b72; text-align: center; border: 1px dashed #ffb3c6; margin: 15px 0;
+        }
+        .timer-display b { font-size: 14px; display: block; margin-top: 3px; }
+
+        /* P.S. Secret Button Styling */
+        .ps-btn {
+            background-color: #ffccd5; color: #ff4b72; border: none; padding: 6px 15px; border-radius: 20px;
+            font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.3s;
+            display: block; margin: 0 auto 10px auto;
+        }
+        .ps-btn:hover { background-color: #ffb3c6; }
+        .ps-message {
+            background-color: #fff0f3; border-left: 3px solid #ff4b72; padding: 10px; margin-bottom: 15px;
+            font-size: 12px; color: #e6395e; border-radius: 0 5px 5px 0; display: none; text-align: center; font-style: italic;
+        }
+
+        /* ------------------------ */
+
+        .corner-rose { position: absolute; font-size: 18px; opacity: 0.2; pointer-events: none; }
+        .rose-tl { top: 10px; left: 10px; }
+        .rose-tr { top: 10px; right: 10px; transform: scaleX(-1); }
+
+        .instruction { margin-top: 40px; color: #ff80a0; font-weight: 600; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; animation: pulse 2s infinite; transition: opacity 0.5s; }
+        @keyframes pulse { 0%, 100% { opacity: 0.6; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); } }
+
+        /* OPEN ANIMATION */
+        .envelope-wrapper.open { transform: translateY(12vh); transition: transform 0.6s ease 0s; }
+        .envelope-wrapper.open .flap { transform: rotateX(180deg); border-top-color: #ffb3c6; z-index: 11; transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0s, border-top-color 0.6s 0s, z-index 0s 0.3s; }
+        .envelope-wrapper.open .seal { opacity: 0; transform: translateY(-20px) scale(0.5); transition: transform 0.4s ease 0s, opacity 0.4s 0s; }
+        .envelope-wrapper.open .letter { height: 65vh; max-height: 550px; transform: translateX(-50%) translateY(-80px); box-shadow: 0 -5px 20px rgba(255, 75, 114, 0.15); transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.6s, height 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.6s, box-shadow 0.8s 0.6s; }
+        .envelope-wrapper.open .letter .message { overflow-y: auto; }
+        .envelope-wrapper.open ~ .instruction { opacity: 0; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+    <!-- PASSWORD LOCK SCREEN -->
+    <div class="password-overlay" id="lock-screen">
+        <div class="password-card">
+            <h2>Secret Date 🔒</h2>
+            <p>When did we officially become together? <br> (Format: MMDDYY)</p>
+            <div class="password-input-wrapper">
+                <input type="password" id="pass-input" maxlength="6" placeholder="••••••">
+                <button onclick="checkPassword()">Unlock Envelope</button>
+            </div>
+            <div class="error-msg" id="error-message">Oops! Wrong date!! wala 2, baka sa ex mo yan😏😏</div>
+        </div>
+    </div>
+
+    <!-- Background Elements -->
+    <div class="float-element heart" style="left: 10%; animation-delay: 0s;">❤️</div>
+    <div class="float-element rose-icon" style="left: 25%; animation-delay: 2s;">🌸</div>
+    <div class="float-element heart" style="left: 40%; animation-delay: 4s;">💖</div>
+    <div class="float-element heart" style="left: 60%; animation-delay: 1s;">🌹</div>
+    <div class="float-element heart" style="left: 75%; animation-delay: 5s;">❤️</div>
+    <div class="float-element rose-icon" style="left: 90%; animation-delay: 3s;">🌸</div>
+
+    <!-- Main Envelope -->
+    <div class="envelope-wrapper" onclick="toggleEnvelope()">
+        <div class="envelope">
+            <div class="flap"></div>
+            <div class="seal"></div>
+            <div class="pocket"></div>
+            
+            <div class="letter">
+                <div class="corner-rose rose-tl">🌹</div>
+                <div class="corner-rose rose-tr">🌹</div>
+
+                <div class="title">Happy 2nd Anniversary!</div>
+                
+                <div class="message" id="message-box">
+                    
+                    <!-- 📸 POLAROID PICTURE -->
+                    <div class="polaroid">
+                        <!-- IMPORTANT: Replace the 'src' link below with the URL or file path of your picture together! -->
+                        <img src="us.jpg" alt="Us">
+                        <div class="polaroid-caption">My Favorite BBQ ❤️</div>
+                    </div>
+
+                    Happyy 2nd Anniversary pi mah bebelovessugarplumhoneybuncuputobungbong khue mwahh🥰😽🫶 two years na with my makulit tas masermon na bbq😏😏🫶 and first of all im blessed na until this year we're still together parin shimpri and thankyouu pi ulit sa lahat ng mga effort na binigay mo sa loob ng dalawang taon natin pi idok. Na-appreciate ko iyon lahat lalo sa mga time na stress aq or down na down me kasi pinapasaya mhue me lagi syempre ikaw ang happy dopie pil q🥰🫶kahit na minsan di us nag kakaintndihan😔😔
+                    <br><br>
+                    Kahit nag wrewrestling tayue lagi, sorryyy sa mga time na masungit me pero dont worryy idok binabago ko na rin sarili q para sa ikabubuti ng rs natin prro may times kasi talaga na makulit u eh😔🫶pasensya talga pi sa mga time nayon😔🫶 and i will love u even more syempre🥰😽🫶 and im very gratefull sa mga nangyari saatin these past two years, every moment that we spend together hehe.
+                    <br><br>
+                    Thankyouuu idok for always choosing me kahit barumbado minsan😓🫶 thankyouuu for always understanding me lalo sa mga time na mahirap aq intindihin😓😓🫶 Syempre i will stay with you no matter what kaya wag kana mag overthink na mag hahanap ako ng iba at sana wag mo na me gawing kwan😔😡🫶 ikaw lang nmn bbq ih😔🫶 and i will do everything to make things work syempre at hindi na papalya hehe mwahh😽🫶
+                    <br><br>
+                    Basta keep safe lagi okiee? And always pray to god hehe wag pabayaan sarili ikaw kumakain ka nanaman ng konti itigil mo yang diet diet mhue😔😔 iloveyouuusomuxchhh pi mwahhh😽🫶 Happyyy 2nd Anniversaryyy pi ulit mwahh😽🫶
+                    
+                    <!-- ⏳ LIVE TIMER -->
+                    <div id="timer" class="timer-display"></div>
+
+                    <!-- 💌 SECRET P.S. BUTTON -->
+                    <button class="ps-btn" onclick="togglePS(event)">P.S. Click me 🥺</button>
+                    <div class="ps-message" id="ps-msg">
+                        Itigil mo na yang kaka diet mhue wala 2 mag exercise at gym ka and kumain ka totoong pagkain wag yung puro process food-_-
+                </div>
+                
+                <div class="sign-off">Forever Yours ❤️</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="instruction">Tap the envelope to open</div>
+
+    <script>
+        // --- LIVE TIMER LOGIC ---
+        function updateTimer() {
+            // Set exactly to May 6, 2023
+            const startDate = new Date('May 6, 2023 00:00:00').getTime();
+            const now = new Date().getTime();
+            const difference = now - startDate;
+
+            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+            document.getElementById('timer').innerHTML = 
+                "⏳ Yun oh nag babardagulan na tayo ng nasa:<br>" + 
+                "<b>" + days + " days, " + hours + " hrs, " + minutes + " mins, " + seconds + " secs</b>";
+        }
+        setInterval(updateTimer, 1000);
+        updateTimer(); // Initial call
+
+        // --- CONFETTI EXPLOSION LOGIC ---
+        function shootConfetti() {
+            var duration = 3 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            function randomInRange(min, max) { return Math.random() * (max - min) + min; }
+
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) { return clearInterval(interval); }
+                var particleCount = 50 * (timeLeft / duration);
+                
+                confetti(Object.assign({}, defaults, { 
+                    particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+                    colors: ['#ff4b72', '#ff99b3', '#ffffff']
+                }));
+                confetti(Object.assign({}, defaults, { 
+                    particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+                    colors: ['#ff4b72', '#ff99b3', '#ffffff']
+                }));
+            }, 250);
+        }
+
+        // --- PASSWORD CHECKING LOGIC ---
+        function checkPassword() {
+            const input = document.getElementById('pass-input').value;
+            const errorMsg = document.getElementById('error-message');
+            const lockScreen = document.getElementById('lock-screen');
+            
+            if (input === '050623') {
+                errorMsg.style.display = 'none';
+                lockScreen.classList.add('unlocked');
+                shootConfetti(); // Trigger the confetti!
+            } else {
+                errorMsg.style.display = 'block';
+                errorMsg.style.animation = 'none';
+                errorMsg.offsetHeight; 
+                errorMsg.style.animation = null; 
+            }
+        }
+
+        // --- SECRET P.S. BUTTON LOGIC (FIXED SCROLL) ---
+        function togglePS(event) {
+            event.stopPropagation(); // Prevents the envelope from closing when tapping the button
+            
+            const psMsg = document.getElementById('ps-msg');
+            const messageBox = document.getElementById('message-box');
+            
+            if (psMsg.style.display === 'none' || psMsg.style.display === '') {
+                psMsg.style.display = 'block';
+                
+                // Forces the letter to smoothly scroll to the bottom so she sees it
+                setTimeout(() => {
+                    messageBox.scrollTo({
+                        top: messageBox.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }, 50);
+                
+            } else {
+                psMsg.style.display = 'none';
+            }
+        }
+
+        // --- ENVELOPE OPEN/CLOSE LOGIC ---
+        function toggleEnvelope() {
+            const wrapper = document.querySelector('.envelope-wrapper');
+            const messageBox = document.getElementById('message-box');
+            
+            if (wrapper.classList.contains('open')) {
+                wrapper.classList.remove('open');
+                setTimeout(() => { messageBox.scrollTop = 0; }, 800); 
+            } else {
+                wrapper.classList.add('open');
+            }
+        }
+    </script>
+</body>
+</html>
